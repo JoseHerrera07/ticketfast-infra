@@ -57,3 +57,8 @@ output "cognito_user_pool_client_id" {
   description = "ID del User Pool Client de Cognito, usado por el frontend"
   value       = module.auth.user_pool_client_id
 }
+
+output "sns_topic_arn" {
+  description = "ARN del topico SNS de alertas"
+  value       = module.notifications.sns_topic_arn
+}

@@ -60,3 +60,11 @@ module "api" {
   cognito_user_pool_id            = module.auth.user_pool_id
   cognito_user_pool_client_id     = module.auth.user_pool_client_id
 }
+
+module "notifications" {
+  source            = "./modules/notifications"
+  name_prefix       = local.name_prefix
+  common_tags       = local.common_tags
+  ses_sender_email  = var.ses_sender_email
+  alert_email       = var.alert_email
+}
