@@ -52,3 +52,7 @@ variable "environment" {
     error_message = "environment debe ser \"dev\", \"staging\" o \"prod\"."
   }
 }
+variable "ses_sender_email" {
+  description = "Correo verificado en SES desde el cual se envían las notificaciones de compra"
+  type        = string
+}

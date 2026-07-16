@@ -7,3 +7,38 @@ output "dynamodb_table_arn" {
   description = "ARN de la tabla DynamoDB de boletos"
   value       = module.database.table_arn
 }
+
+output "queue_url" {
+  description = "URL de la cola de compras SQS"
+  value       = module.queue.queue_url
+}
+
+output "dlq_url" {
+  description = "URL de la Dead Letter Queue"
+  value       = module.queue.dlq_url
+}
+
+output "lambda_recepcion_role_arn" {
+  description = "ARN del rol IAM de la Lambda de recepción"
+  value       = module.security.lambda_recepcion_role_arn
+}
+
+output "lambda_procesamiento_role_arn" {
+  description = "ARN del rol IAM de la Lambda de procesamiento"
+  value       = module.security.lambda_procesamiento_role_arn
+}
+
+output "lambda_recepcion_arn" {
+  description = "ARN de la Lambda de recepcion"
+  value       = module.compute.lambda_recepcion_arn
+}
+
+output "lambda_recepcion_invoke_arn" {
+  description = "Invoke ARN de la Lambda de recepcion (para API Gateway)"
+  value       = module.compute.lambda_recepcion_invoke_arn
+}
+
+output "lambda_procesamiento_arn" {
+  description = "ARN de la Lambda de procesamiento"
+  value       = module.compute.lambda_procesamiento_arn
+}
