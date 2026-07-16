@@ -42,3 +42,18 @@ output "lambda_procesamiento_arn" {
   description = "ARN de la Lambda de procesamiento"
   value       = module.compute.lambda_procesamiento_arn
 }
+
+output "api_endpoint" {
+  description = "URL base del API Gateway para probar POST /compras"
+  value       = module.api.api_endpoint
+}
+
+output "cognito_user_pool_id" {
+  description = "ID del User Pool de Cognito"
+  value       = module.auth.user_pool_id
+}
+
+output "cognito_user_pool_client_id" {
+  description = "ID del User Pool Client de Cognito, usado por el frontend"
+  value       = module.auth.user_pool_client_id
+}

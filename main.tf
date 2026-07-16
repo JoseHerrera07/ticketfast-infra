@@ -43,3 +43,20 @@ module "compute" {
   table_name                     = module.database.table_name
   ses_sender_email                = var.ses_sender_email
 }
+
+module "auth" {
+  source      = "./modules/auth"
+  name_prefix = local.name_prefix
+  common_tags = local.common_tags
+}
+module "api" {
+  source                          = "./modules/api"
+  name_prefix                     = local.name_prefix
+  common_tags                     = local.common_tags
+  aws_region                      = var.aws_region
+  lambda_recepcion_arn            = module.compute.lambda_recepcion_arn
+  lambda_recepcion_invoke_arn     = module.compute.lambda_recepcion_invoke_arn
+  lambda_recepcion_function_name  = module.compute.lambda_recepcion_function_name
+  cognito_user_pool_id            = module.auth.user_pool_id
+  cognito_user_pool_client_id     = module.auth.user_pool_client_id
+}
