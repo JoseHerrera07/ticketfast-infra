@@ -1,0 +1,70 @@
+name: CI/CD Ticketfast
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+  TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  TF_VAR_cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+
+jobs:
+  pruebas-unitarias:
+    name: Pruebas unitarias (Jest)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lambda: [recepcion, procesamiento]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias (${{ matrix.lambda }})
+        working-directory: lambdas/${{ matrix.lambda }}
+        run: npm ci
+
+      - name: Correr pruebas (${{ matrix.lambda }})
+        working-directory: lambdas/${{ matrix.lambda }}
+        run: npm test
+
+  terraform-validate-plan:
+    name: Terraform validate + plan
+    runs-on: ubuntu-latest
+    needs: pruebas-unitarias
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform fmt (verificar formato)
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform plan (dev)
+        run: terraform plan -var-file="environments/dev.tfvars"
+
+  # El job de "terraform apply" automatico a produccion se agregara cuando
+  # se configure un dominio real en Cloudflare (pendiente por costo/tiempo).
+  # Mientras tanto, el despliegue se hace de forma manual con
+  # "terraform apply -var-file=environments/dev.tfvars" desde local.
