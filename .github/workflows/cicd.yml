@@ -35,10 +35,38 @@ jobs:
         working-directory: lambdas/${{ matrix.lambda }}
         run: npm test
 
+  pruebas-negocio:
+    name: Pruebas de negocio (flujo end-to-end)
+    runs-on: ubuntu-latest
+    needs: pruebas-unitarias
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias de la Lambda de recepcion
+        working-directory: lambdas/recepcion
+        run: npm ci
+
+      - name: Instalar dependencias de la Lambda de procesamiento
+        working-directory: lambdas/procesamiento
+        run: npm ci
+
+      - name: Instalar dependencias de pruebas de negocio
+        working-directory: tests/negocio
+        run: npm ci
+
+      - name: Correr pruebas de negocio
+        working-directory: tests/negocio
+        run: npm test
+
   terraform-validate-plan:
     name: Terraform validate + plan
     runs-on: ubuntu-latest
-    needs: pruebas-unitarias
+    needs: pruebas-negocio
     steps:
       - uses: actions/checkout@v4
 

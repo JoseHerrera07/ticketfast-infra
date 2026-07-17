@@ -1,0 +1,16 @@
+{
+  "name": "ticketfast-pruebas-negocio",
+  "version": "1.0.0",
+  "description": "Pruebas de negocio end-to-end: flujo completo de compra de entradas",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "aws-sdk-client-mock": "^4.0.0",
+    "@aws-sdk/client-sqs": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0",
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/client-ses": "^3.600.0"
+  }
+}
