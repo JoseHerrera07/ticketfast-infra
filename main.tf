@@ -17,9 +17,9 @@ module "database" {
 
 module "queue" {
   source                 = "./modules/queue"
-  name_prefix             = local.name_prefix
-  common_tags             = local.common_tags
-  lambda_timeout_seconds  = 30
+  name_prefix            = local.name_prefix
+  common_tags            = local.common_tags
+  lambda_timeout_seconds = 30
 }
 
 module "security" {
@@ -32,16 +32,16 @@ module "security" {
 }
 
 module "compute" {
-  source                         = "./modules/compute"
-  name_prefix                    = local.name_prefix
-  common_tags                    = local.common_tags
-  lambda_memory_mb               = var.lambda_memory_mb
-  lambda_recepcion_role_arn      = module.security.lambda_recepcion_role_arn
-  lambda_procesamiento_role_arn  = module.security.lambda_procesamiento_role_arn
-  queue_url                      = module.queue.queue_url
-  queue_arn                      = module.queue.queue_arn
-  table_name                     = module.database.table_name
-  ses_sender_email                = var.ses_sender_email
+  source                        = "./modules/compute"
+  name_prefix                   = local.name_prefix
+  common_tags                   = local.common_tags
+  lambda_memory_mb              = var.lambda_memory_mb
+  lambda_recepcion_role_arn     = module.security.lambda_recepcion_role_arn
+  lambda_procesamiento_role_arn = module.security.lambda_procesamiento_role_arn
+  queue_url                     = module.queue.queue_url
+  queue_arn                     = module.queue.queue_arn
+  table_name                    = module.database.table_name
+  ses_sender_email              = var.ses_sender_email
 }
 
 module "auth" {
@@ -50,23 +50,23 @@ module "auth" {
   common_tags = local.common_tags
 }
 module "api" {
-  source                          = "./modules/api"
-  name_prefix                     = local.name_prefix
-  common_tags                     = local.common_tags
-  aws_region                      = var.aws_region
-  lambda_recepcion_arn            = module.compute.lambda_recepcion_arn
-  lambda_recepcion_invoke_arn     = module.compute.lambda_recepcion_invoke_arn
-  lambda_recepcion_function_name  = module.compute.lambda_recepcion_function_name
-  cognito_user_pool_id            = module.auth.user_pool_id
-  cognito_user_pool_client_id     = module.auth.user_pool_client_id
+  source                         = "./modules/api"
+  name_prefix                    = local.name_prefix
+  common_tags                    = local.common_tags
+  aws_region                     = var.aws_region
+  lambda_recepcion_arn           = module.compute.lambda_recepcion_arn
+  lambda_recepcion_invoke_arn    = module.compute.lambda_recepcion_invoke_arn
+  lambda_recepcion_function_name = module.compute.lambda_recepcion_function_name
+  cognito_user_pool_id           = module.auth.user_pool_id
+  cognito_user_pool_client_id    = module.auth.user_pool_client_id
 }
 
 module "notifications" {
-  source            = "./modules/notifications"
-  name_prefix       = local.name_prefix
-  common_tags       = local.common_tags
-  ses_sender_email  = var.ses_sender_email
-  alert_email       = var.alert_email
+  source           = "./modules/notifications"
+  name_prefix      = local.name_prefix
+  common_tags      = local.common_tags
+  ses_sender_email = var.ses_sender_email
+  alert_email      = var.alert_email
 }
 
 module "networking" {
@@ -77,13 +77,13 @@ module "networking" {
 }
 
 module "monitoring" {
-  source                              = "./modules/monitoring"
-  name_prefix                         = local.name_prefix
-  common_tags                         = local.common_tags
-  vpc_id                              = module.networking.vpc_id
-  public_subnet_id                    = module.networking.public_subnet_id
-  monitoring_sg_id                    = module.networking.monitoring_sg_id
-  sns_topic_arn                       = module.notifications.sns_topic_arn
-  dlq_name                            = module.queue.dlq_name
-  lambda_procesamiento_function_name  = module.compute.lambda_procesamiento_function_name
+  source                             = "./modules/monitoring"
+  name_prefix                        = local.name_prefix
+  common_tags                        = local.common_tags
+  vpc_id                             = module.networking.vpc_id
+  public_subnet_id                   = module.networking.public_subnet_id
+  monitoring_sg_id                   = module.networking.monitoring_sg_id
+  sns_topic_arn                      = module.notifications.sns_topic_arn
+  dlq_name                           = module.queue.dlq_name
+  lambda_procesamiento_function_name = module.compute.lambda_procesamiento_function_name
 }

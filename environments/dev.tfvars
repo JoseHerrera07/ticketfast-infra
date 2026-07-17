@@ -4,4 +4,4 @@ project_name     = "ticketfast"
 lambda_memory_mb = 128
 alert_email      = "admin-dev@ticketfast.example.com"
 ses_sender_email = "miguelamen2003@gmail.com"
-admin_ip_cidr = "190.233.177.195/32"
+admin_ip_cidr    = "190.233.177.195/32"

@@ -43,8 +43,8 @@ resource "aws_lambda_function" "procesamiento" {
 
   environment {
     variables = {
-      TABLE_NAME    = var.table_name
-      SENDER_EMAIL  = var.ses_sender_email
+      TABLE_NAME   = var.table_name
+      SENDER_EMAIL = var.ses_sender_email
     }
   }
 }

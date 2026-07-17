@@ -2,7 +2,7 @@
 # Retención larga (14 días) porque estos mensajes representan compras que
 # necesitan revisión manual — no se pueden perder.
 resource "aws_sqs_queue" "dlq" {
-  name                     = "${var.name_prefix}-purchases-dlq"
+  name                      = "${var.name_prefix}-purchases-dlq"
   message_retention_seconds = 1209600 # 14 días (máximo permitido por SQS)
   sqs_managed_sse_enabled   = true
 
