@@ -1,58 +1,87 @@
-# Ticketfast — Infraestructura como Código
+# Ticketfast — Plataforma de Venta de Entradas
 
-Infraestructura serverless en AWS para la plataforma de venta de entradas Ticketfast, gestionada con Terraform (aprovisionamiento) y Ansible (configuración del EC2 de monitoreo).
+Infraestructura serverless en AWS para la plataforma de venta de entradas Ticketfast, gestionada íntegramente con Terraform (aprovisionamiento) y desplegada mediante un pipeline de CI/CD en GitHub Actions.
+
+Trabajo final del curso de Infraestructura como Código (IaC).
 
 ## Estructura del repositorio
 
 ```
-environments/    Variables por ambiente (dev, staging, prod)
-modules/         Un módulo de Terraform por cada capa del diagrama de arquitectura
-lambdas/         Código Node.js de las Lambdas + sus pruebas unitarias (Jest)
-tests/negocio/   Pruebas de negocio end-to-end
-.github/workflows/  Pipeline de CI/CD
+lambdas/                Código fuente de las funciones serverless (Node.js 20)
+  recepcion/              Lambda que recibe la compra vía API Gateway y la encola en SQS
+  procesamiento/          Lambda que consume la cola, escribe el ticket en DynamoDB y confirma por SES
+modules/                 Infraestructura como Código (Terraform), un módulo por servicio
+  database/                Tabla DynamoDB de tickets (clave compuesta, GSI, PITR)
+  queue/                   Cola SQS de compras + Dead Letter Queue con redrive policy
+  security/                Roles IAM de mínimo privilegio para cada Lambda
+  compute/                 Funciones Lambda (recepción y procesamiento) + event source mapping
+  auth/                    Cognito User Pool y User Pool Client
+  api/                     API Gateway HTTP API con authorizer JWT de Cognito
+  notifications/           Verificación SES + tópico SNS de alertas
+  networking/              VPC, subred pública, Internet Gateway y Security Group
+  monitoring/               EC2 en Auto Scaling Group (Prometheus/Grafana) + alarmas CloudWatch
+tests/negocio/            Pruebas de negocio end-to-end (flujo completo de compra)
+environments/             Variables por ambiente (dev, staging, prod)
+.github/workflows/        Pipeline de CI/CD (GitHub Actions)
+main.tf, variables.tf,
+outputs.tf, providers.tf  Orquestación raíz de todos los módulos
+backend.tf                 Remote state de Terraform (S3 + DynamoDB para locks)
 ```
 
-## Bootstrap del backend remoto (se hace UNA sola vez, manualmente)
+## Arquitectura
 
-Terraform necesita un bucket S3 y una tabla DynamoDB para guardar su *state* de forma remota (ver `backend.tf`). Como Terraform no puede crear la infraestructura que él mismo va a usar para guardarse, este paso se hace a mano una única vez, antes de correr `terraform init` por primera vez:
+Flujo de compra: **Cloudflare → API Gateway (JWT/Cognito) → Lambda recepción → SQS + DLQ → Lambda procesamiento → DynamoDB → SES**, con monitoreo vía CloudWatch → EC2 (Prometheus/Grafana) → SNS → administrador.
 
-```bash
-aws s3api create-bucket --bucket ticketfast-terraform-state --region us-east-1
-aws s3api put-bucket-versioning --bucket ticketfast-terraform-state \
-  --versioning-configuration Status=Enabled
-aws s3api put-bucket-encryption --bucket ticketfast-terraform-state \
-  --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+El diagrama completo de arquitectura (`.drawio`) está disponible en el informe del proyecto.
 
-aws dynamodb create-table \
-  --table-name ticketfast-terraform-locks \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST
+## Requisitos previos
+
+- Node.js 20+
+- Terraform (v1.5+)
+- Cuenta de AWS y AWS CLI configurado
+- Cuenta de Cloudflare (API token, Account ID y Zone ID)
+- Git
+
+## Pruebas
+
+Cada Lambda tiene sus propias pruebas unitarias con Jest:
+
+```
+cd lambdas/recepcion && npm install && npm test
+cd lambdas/procesamiento && npm install && npm test
 ```
 
-## Uso normal (día a día)
+Las pruebas de negocio validan el flujo completo de compra de extremo a extremo (recepción → cola → procesamiento → DynamoDB), incluyendo el caso de doble venta del mismo asiento:
 
-```bash
+```
+cd tests/negocio && npm install && npm test
+```
+
+## Despliegue de infraestructura
+
+Desde la raíz del repositorio:
+
+```
 terraform init
-
-# Crear/seleccionar el workspace del ambiente en el que vas a trabajar
-terraform workspace new dev        # solo la primera vez
-terraform workspace select dev
-
-terraform plan  -var-file="environments/dev.tfvars"
+terraform plan -var-file="environments/dev.tfvars"
 terraform apply -var-file="environments/dev.tfvars"
 ```
 
-Para staging o prod, se repite lo mismo cambiando `dev` por `staging` o `prod` en ambos lugares (workspace y `-var-file`).
+Existen archivos de variables equivalentes para `staging` y `prod` en `environments/`.
+
+## CI/CD
+
+El pipeline (`.github/workflows/cicd.yml`) se ejecuta en cada push y pull request a `main`, en 4 etapas encadenadas:
+
+1. **Pruebas unitarias** (Jest) para ambas Lambdas, en paralelo.
+2. **Pruebas de negocio** end-to-end, solo si las unitarias pasan.
+3. **Terraform fmt + validate + plan**, solo si las pruebas pasan.
+4. **Terraform apply** — actualmente manual, pendiente de contar con un dominio propio en Cloudflare para automatizarlo por completo.
 
 ## Variables sensibles
 
-`cloudflare_api_token`, `cloudflare_account_id` y `cloudflare_zone_id` **no** están en los `.tfvars` (esos se suben al repo). Se pasan como variables de entorno:
+Las credenciales de AWS y Cloudflare no se guardan en el repositorio: se gestionan mediante **GitHub Secrets** (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID`) y se inyectan como variables de entorno en el pipeline. La llave privada SSH del EC2 de monitoreo se genera automáticamente con Terraform y nunca se versiona (`.gitignore`).
 
-```bash
-export TF_VAR_cloudflare_api_token="..."
-export TF_VAR_cloudflare_account_id="..."
-export TF_VAR_cloudflare_zone_id="..."
-```
+## Licencia
 
-En el pipeline de GitHub Actions, estas mismas variables se leen desde GitHub Secrets (ver diagrama de seguridad).
+Este proyecto es de código abierto para fines educativos.
