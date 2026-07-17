@@ -56,3 +56,7 @@ variable "ses_sender_email" {
   description = "Correo verificado en SES desde el cual se envían las notificaciones de compra"
   type        = string
 }
+variable "admin_ip_cidr" {
+  description = "CIDR de la IP del administrador, permitida para SSH y Grafana al EC2 de monitoreo"
+  type        = string
+}

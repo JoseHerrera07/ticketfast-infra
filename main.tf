@@ -68,3 +68,10 @@ module "notifications" {
   ses_sender_email  = var.ses_sender_email
   alert_email       = var.alert_email
 }
+
+module "networking" {
+  source        = "./modules/networking"
+  name_prefix   = local.name_prefix
+  common_tags   = local.common_tags
+  admin_ip_cidr = var.admin_ip_cidr
+}

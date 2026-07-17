@@ -62,3 +62,18 @@ output "sns_topic_arn" {
   description = "ARN del topico SNS de alertas"
   value       = module.notifications.sns_topic_arn
 }
+
+output "vpc_id" {
+  description = "ID de la VPC"
+  value       = module.networking.vpc_id
+}
+
+output "public_subnet_id" {
+  description = "ID de la subred publica"
+  value       = module.networking.public_subnet_id
+}
+
+output "monitoring_sg_id" {
+  description = "ID del security group de monitoreo"
+  value       = module.networking.monitoring_sg_id
+}
