@@ -75,3 +75,15 @@ module "networking" {
   common_tags   = local.common_tags
   admin_ip_cidr = var.admin_ip_cidr
 }
+
+module "monitoring" {
+  source                              = "./modules/monitoring"
+  name_prefix                         = local.name_prefix
+  common_tags                         = local.common_tags
+  vpc_id                              = module.networking.vpc_id
+  public_subnet_id                    = module.networking.public_subnet_id
+  monitoring_sg_id                    = module.networking.monitoring_sg_id
+  sns_topic_arn                       = module.notifications.sns_topic_arn
+  dlq_name                            = module.queue.dlq_name
+  lambda_procesamiento_function_name  = module.compute.lambda_procesamiento_function_name
+}

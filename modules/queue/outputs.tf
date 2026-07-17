@@ -17,3 +17,7 @@ output "dlq_arn" {
   description = "ARN de la Dead Letter Queue"
   value       = aws_sqs_queue.dlq.arn
 }
+output "dlq_name" {
+  description = "Nombre de la Dead Letter Queue, usado por el modulo monitoring para la alarma de CloudWatch"
+  value       = aws_sqs_queue.dlq.name
+}

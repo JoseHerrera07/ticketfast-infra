@@ -17,3 +17,7 @@ output "lambda_procesamiento_arn" {
   description = "ARN de la Lambda de procesamiento"
   value       = aws_lambda_function.procesamiento.arn
 }
+output "lambda_procesamiento_function_name" {
+  description = "Nombre de la funcion de procesamiento"
+  value       = aws_lambda_function.procesamiento.function_name
+}

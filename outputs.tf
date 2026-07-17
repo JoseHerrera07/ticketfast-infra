@@ -77,3 +77,13 @@ output "monitoring_sg_id" {
   description = "ID del security group de monitoreo"
   value       = module.networking.monitoring_sg_id
 }
+
+output "monitoring_key_pair_name" {
+  description = "Nombre del key pair EC2 de monitoreo"
+  value       = module.monitoring.key_pair_name
+}
+
+output "monitoring_private_key_path" {
+  description = "Ruta local del archivo .pem para SSH al EC2 de monitoreo"
+  value       = module.monitoring.private_key_path
+}

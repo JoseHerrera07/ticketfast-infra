@@ -25,3 +25,6 @@ npm-debug.log*
 
 # Lambdas empaquetadas (se regeneran con terraform plan/apply)
 lambdas/*.zip
+
+# Llave privada SSH del EC2 de monitoreo (generada por Terraform, nunca se sube)
+*.pem
